@@ -47,7 +47,8 @@ const organizationJsonLd = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${jakarta.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col font-sans">
+      {/* Browser extensions (e.g. ColorZilla's cz-shortcut-listen) add attributes to <body> before hydration. */}
+      <body className="flex min-h-full flex-col font-sans" suppressHydrationWarning>
         <a
           href="#main"
           className="sr-only z-[100] rounded-md bg-white px-4 py-2 text-sm font-semibold text-brand-700 shadow focus:not-sr-only focus:fixed focus:top-3 focus:left-3"

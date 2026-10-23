@@ -1,7 +1,9 @@
 "use server";
 
+import { after } from "next/server";
 import { z } from "zod";
 import { query } from "@/lib/db";
+import { sendInquiryNotification } from "@/lib/mail";
 import { site } from "@/config/site";
 import {
   applicationSchema,
@@ -45,6 +47,10 @@ export async function submitInquiry(_prev: FormState, formData: FormData): Promi
     console.error("submitInquiry failed", err);
     return serverError(values);
   }
+
+  // The inquiry is already saved; email the office after the response so a slow
+  // or failing mail server never delays or breaks the form.
+  after(() => sendInquiryNotification(d));
 
   return {
     status: "success",
