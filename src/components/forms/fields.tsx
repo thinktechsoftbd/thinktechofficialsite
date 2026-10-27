@@ -3,7 +3,7 @@
 import { useFormStatus } from "react-dom";
 import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
 import { buttonClasses } from "@/components/ui/ButtonLink";
-import type { FormState } from "@/lib/validation";
+import { HONEYPOT_FIELD, type FormState } from "@/lib/validation";
 
 type BaseProps = {
   name: string;
@@ -151,13 +151,28 @@ export function SelectField({
   );
 }
 
-/** Off-screen field that only bots fill in. */
+/**
+ * Off-screen field that only bots fill in. The name and label are deliberately
+ * meaningless: a field called "website" was being filled by browser autofill and
+ * password managers, which made real messages look like spam. The data-* flags
+ * ask 1Password, LastPass, Bitwarden and Dashlane to leave it alone.
+ */
 export function Honeypot() {
   return (
     <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
       <label>
-        Website
-        <input type="text" name="website" tabIndex={-1} autoComplete="off" defaultValue="" />
+        Leave this field empty
+        <input
+          type="text"
+          name={HONEYPOT_FIELD}
+          tabIndex={-1}
+          autoComplete="off"
+          defaultValue=""
+          data-1p-ignore
+          data-lpignore="true"
+          data-bwignore
+          data-form-type="other"
+        />
       </label>
     </div>
   );

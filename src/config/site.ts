@@ -8,10 +8,10 @@ export const site = {
     "ThinkTech is a software engineering company that designs, builds and scales custom software, web and mobile apps, ERP systems and practical AI for growing businesses.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   contact: {
-    email: "hello@thinktech.example", // TODO: replace with your real address
-    careersEmail: "careers@thinktech.example", // TODO
-    phone: "+00 000 000 0000", // TODO
-    address: ["Head Office", "Street address", "City, Country"], // TODO
+    email: "thinktechsoftbd@gmail.com", // TODO: replace with your real address
+    careersEmail: "thinktechsoftbd@gmail.com", // TODO
+    phone: "+8801819495947", // TODO
+    address: [ "Rangpur, Bangladesh"], // TODO
     hours: "Sunday–Thursday, 9:00–18:00",
   },
   social: {

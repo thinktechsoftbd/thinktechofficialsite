@@ -1,18 +1,26 @@
 "use server";
 
+import { after } from "next/server";
 import { z } from "zod";
 import { query } from "@/lib/db";
+import { sendInquiryNotification } from "@/lib/mail";
 import { site } from "@/config/site";
 import {
   applicationSchema,
   formValues,
+  HONEYPOT_FIELD,
   inquirySchema,
   newsletterSchema,
   type FormState,
 } from "@/lib/validation";
 
-// Hidden field that humans never fill in. Bots that do get a fake success.
-const HONEYPOT = "website";
+// The hidden honeypot field is only filled in by bots, which get a fake success.
+// The log line shows when a submission is dropped, in case a real visitor is caught.
+function isSpam(values: Record<string, string>, form: string) {
+  if (!values[HONEYPOT_FIELD]) return false;
+  console.warn(`${form}: honeypot field was filled in; submission discarded as spam.`);
+  return true;
+}
 
 const failure = (message: string, values?: Record<string, string>, errors?: FormState["errors"]): FormState => ({
   status: "error",
@@ -26,7 +34,7 @@ const serverError = (values: Record<string, string>) =>
 
 export async function submitInquiry(_prev: FormState, formData: FormData): Promise<FormState> {
   const values = formValues(formData);
-  if (values[HONEYPOT]) return { status: "success" };
+  if (isSpam(values, "submitInquiry")) return { status: "success" };
 
   const parsed = inquirySchema.safeParse(values);
   if (!parsed.success) {
@@ -46,6 +54,10 @@ export async function submitInquiry(_prev: FormState, formData: FormData): Promi
     return serverError(values);
   }
 
+  // The inquiry is already saved; email the office after the response so a slow
+  // or failing mail server never delays or breaks the form.
+  after(() => sendInquiryNotification(d));
+
   return {
     status: "success",
     message: `Thanks, ${d.full_name.split(" ")[0]}! We've received your message and will reply within one business day.`,
@@ -54,7 +66,7 @@ export async function submitInquiry(_prev: FormState, formData: FormData): Promi
 
 export async function subscribeNewsletter(_prev: FormState, formData: FormData): Promise<FormState> {
   const values = formValues(formData);
-  if (values[HONEYPOT]) return { status: "success" };
+  if (isSpam(values, "subscribeNewsletter")) return { status: "success" };
 
   const parsed = newsletterSchema.safeParse(values);
   if (!parsed.success) {
@@ -77,7 +89,7 @@ export async function subscribeNewsletter(_prev: FormState, formData: FormData):
 
 export async function submitApplication(_prev: FormState, formData: FormData): Promise<FormState> {
   const values = formValues(formData);
-  if (values[HONEYPOT]) return { status: "success" };
+  if (isSpam(values, "submitApplication")) return { status: "success" };
 
   const parsed = applicationSchema.safeParse(values);
   if (!parsed.success) {

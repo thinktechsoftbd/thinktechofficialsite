@@ -68,6 +68,9 @@ export type FormState = {
 
 export const initialFormState: FormState = { status: "idle" };
 
+/** Name of the hidden spam-trap field (see Honeypot in components/forms/fields.tsx). */
+export const HONEYPOT_FIELD = "_gotcha";
+
 /** Plain string values from FormData, without React's internal $ACTION_ fields. */
 export function formValues(formData: FormData): Record<string, string> {
   const values: Record<string, string> = {};

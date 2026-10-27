@@ -117,7 +117,7 @@ export async function Footer() {
             </li>
             <li>
               <Link href="/sitemap.xml" className="hover:text-white">
-                Sitemap
+                Site map
               </Link>
             </li>
           </ul>
