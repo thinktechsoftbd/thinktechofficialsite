@@ -12,7 +12,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const url = (path: string) => `${site.url}${path}`;
 
-  const staticPages = ["", "/services", "/industries", "/work", "/insights", "/about", "/careers", "/contact", "/privacy"];
+  const staticPages = [
+    "",
+    "/services",
+    "/pricing",
+    "/industries",
+    "/work",
+    "/insights",
+    "/about",
+    "/careers",
+    "/contact",
+    "/privacy",
+  ];
 
   return [
     ...staticPages.map((p) => ({ url: url(p), priority: p === "" ? 1 : 0.8 })),

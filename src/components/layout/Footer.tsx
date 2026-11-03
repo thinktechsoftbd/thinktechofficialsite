@@ -28,6 +28,7 @@ export async function Footer() {
       links: [
         { label: "About us", href: "/about" },
         { label: "Our work", href: "/work" },
+        { label: "Pricing", href: "/pricing" },
         { label: "Insights", href: "/insights" },
         { label: "Careers", href: "/careers" },
         { label: "Contact", href: "/contact" },

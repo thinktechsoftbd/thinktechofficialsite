@@ -12,6 +12,8 @@ import type { ServiceLink } from "@/lib/types";
 
 type MenuId = "services" | "company" | null;
 
+const pricingLink = { label: "Pricing", href: "/pricing" };
+
 const simpleLinks = [
   { label: "Industries", href: "/industries" },
   { label: "Work", href: "/work" },
@@ -101,6 +103,8 @@ export function NavBar({ services }: { services: ServiceLink[] }) {
 
         {/* Desktop */}
         <div className="hidden items-center gap-1 lg:flex">
+          <NavLink href={pricingLink.href}>{pricingLink.label}</NavLink>
+
           <div className="relative" onMouseLeave={() => setOpenMenu(null)}>
             <button
               type="button"
@@ -242,7 +246,7 @@ export function NavBar({ services }: { services: ServiceLink[] }) {
             </ul>
           </details>
           <ul className="space-y-1 border-t border-slate-100 pt-4">
-            {[...simpleLinks, ...companyNav].map((l) => (
+            {[pricingLink, ...simpleLinks, ...companyNav].map((l) => (
               <li key={l.href}>
                 <Link
                   href={l.href}

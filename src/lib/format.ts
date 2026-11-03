@@ -10,3 +10,10 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
 export function formatDate(isoDate: string) {
   return dateFormatter.format(new Date(`${isoDate}T00:00:00Z`));
 }
+
+const usdFormatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+
+/** 1299 -> "$1,299" */
+export function formatUsd(amount: number) {
+  return `$${usdFormatter.format(amount)}`;
+}
