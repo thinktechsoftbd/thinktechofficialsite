@@ -44,7 +44,7 @@ export async function submitInquiry(_prev: FormState, formData: FormData): Promi
   const d = parsed.data;
   try {
     await query(
-      `INSERT INTO website.inquiries
+      `INSERT INTO inquiries
          (full_name, email, phone, company, country, service_interest, budget_range, message, source_page)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [d.full_name, d.email, d.phone, d.company, d.country, d.service_interest, d.budget_range, d.message, d.source_page],
@@ -75,7 +75,7 @@ export async function subscribeNewsletter(_prev: FormState, formData: FormData):
 
   try {
     await query(
-      `INSERT INTO website.newsletter_subscribers (email, source_page) VALUES ($1, $2)
+      `INSERT INTO newsletter_subscribers (email, source_page) VALUES ($1, $2)
        ON CONFLICT DO NOTHING`,
       [parsed.data.email, parsed.data.source_page],
     );
@@ -99,9 +99,9 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
   const d = parsed.data;
   try {
     const inserted = await query<{ id: number }>(
-      `INSERT INTO website.job_applications
+      `INSERT INTO job_applications
          (job_opening_id, full_name, email, phone, linkedin_url, portfolio_url, resume_url, cover_letter)
-       SELECT id, $2, $3, $4, $5, $6, $7, $8 FROM website.job_openings WHERE slug = $1 AND is_open
+       SELECT id, $2, $3, $4, $5, $6, $7, $8 FROM job_openings WHERE slug = $1 AND is_open
        RETURNING id`,
       [d.job_slug, d.full_name, d.email, d.phone, d.linkedin_url, d.portfolio_url, d.resume_url, d.cover_letter],
     );

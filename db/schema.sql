@@ -1,14 +1,10 @@
--- ThinkTech official website schema.
--- Lives in its own `website` schema so it can share the `thinktecherp`
--- database with ERP modules without table-name collisions.
+-- ThinkTech official website tables, in the `thinktecherp` database.
+-- Names are unqualified: `npm run db:migrate` creates them in the schema set
+-- by DATABASE_SCHEMA (default `public`) through the connection's search_path.
 -- Idempotent: safe to run repeatedly.
 
-CREATE SCHEMA IF NOT EXISTS website;
-
-SET search_path TO website;
-
 -- Shared trigger to keep updated_at current.
-CREATE OR REPLACE FUNCTION website.touch_updated_at() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION touch_updated_at() RETURNS trigger AS $$
 BEGIN
   NEW.updated_at := now();
   RETURN NEW;
@@ -192,8 +188,8 @@ BEGIN
   FOREACH t IN ARRAY ARRAY['services', 'industries', 'case_studies', 'testimonials', 'posts',
                            'job_openings', 'inquiries', 'job_applications']
   LOOP
-    EXECUTE format('DROP TRIGGER IF EXISTS %1$s_touch ON website.%1$s', t);
-    EXECUTE format('CREATE TRIGGER %1$s_touch BEFORE UPDATE ON website.%1$s
-                    FOR EACH ROW EXECUTE FUNCTION website.touch_updated_at()', t);
+    EXECUTE format('DROP TRIGGER IF EXISTS %1$s_touch ON %1$s', t);
+    EXECUTE format('CREATE TRIGGER %1$s_touch BEFORE UPDATE ON %1$s
+                    FOR EACH ROW EXECUTE FUNCTION touch_updated_at()', t);
   END LOOP;
 END $$;

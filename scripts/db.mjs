@@ -1,9 +1,12 @@
 // Database CLI for the ThinkTech website.
 //
-//   node --env-file=.env.local scripts/db.mjs migrate   # create/upgrade the `website` schema
+//   node --env-file=.env.local scripts/db.mjs migrate   # create/upgrade the website tables
 //   node --env-file=.env.local scripts/db.mjs seed      # upsert starter content
 //   node --env-file=.env.local scripts/db.mjs setup     # migrate + seed
 //   node --env-file=.env.local scripts/db.mjs status    # row counts per table
+//
+// Tables live in the schema named by DATABASE_SCHEMA (default "public"); it is
+// set as the connection search_path, so the SQL uses plain table names.
 //
 // Seeding upserts content by slug and replaces only the small slug-less
 // tables (stats, faqs, testimonials). Lead tables (inquiries, job
@@ -20,16 +23,29 @@ if (!process.env.DATABASE_URL) {
   process.exit(1);
 }
 
+const schema = process.env.DATABASE_SCHEMA || "public";
+if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(schema)) {
+  console.error(`DATABASE_SCHEMA "${schema}" is not a valid schema name.`);
+  process.exit(1);
+}
+
+const TABLES = [
+  "services", "industries", "case_studies", "testimonials", "posts", "job_openings",
+  "stats", "faqs", "inquiries", "job_applications", "newsletter_subscribers",
+];
+
 const client = new pg.Client({
   connectionString: process.env.DATABASE_URL,
+  options: `-c search_path=${schema}`,
   ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : undefined,
   connectionTimeoutMillis: 15_000,
 });
 
 async function migrate() {
   const sql = await readFile(new URL("../db/schema.sql", import.meta.url), "utf8");
+  await client.query(`CREATE SCHEMA IF NOT EXISTS "${schema}"`);
   await client.query(sql);
-  console.log("✓ schema applied");
+  console.log(`✓ schema applied to "${schema}"`);
 }
 
 async function upsert(table, rows, conflictKey = "slug") {
@@ -39,7 +55,7 @@ async function upsert(table, rows, conflictKey = "slug") {
     const placeholders = cols.map((c, i) => (c === "outcomes" ? `$${i + 1}::jsonb` : `$${i + 1}`));
     const updates = cols.filter((c) => c !== conflictKey).map((c) => `${c} = EXCLUDED.${c}`);
     await client.query(
-      `INSERT INTO website.${table} (${cols.join(", ")}) VALUES (${placeholders.join(", ")})
+      `INSERT INTO ${table} (${cols.join(", ")}) VALUES (${placeholders.join(", ")})
        ON CONFLICT (${conflictKey}) DO UPDATE SET ${updates.join(", ")}`,
       values,
     );
@@ -48,11 +64,11 @@ async function upsert(table, rows, conflictKey = "slug") {
 }
 
 async function replace(table, rows) {
-  await client.query(`DELETE FROM website.${table}`);
+  await client.query(`DELETE FROM ${table}`);
   for (const row of rows) {
     const cols = Object.keys(row);
     await client.query(
-      `INSERT INTO website.${table} (${cols.join(", ")}) VALUES (${cols.map((_, i) => `$${i + 1}`).join(", ")})`,
+      `INSERT INTO ${table} (${cols.join(", ")}) VALUES (${cols.map((_, i) => `$${i + 1}`).join(", ")})`,
       cols.map((c) => row[c]),
     );
   }
@@ -65,8 +81,8 @@ async function seedAll() {
     await upsert("services", seed.services);
     await upsert("industries", seed.industries);
 
-    const { rows: svc } = await client.query("SELECT id, slug FROM website.services");
-    const { rows: ind } = await client.query("SELECT id, slug FROM website.industries");
+    const { rows: svc } = await client.query("SELECT id, slug FROM services");
+    const { rows: ind } = await client.query("SELECT id, slug FROM industries");
     const serviceId = Object.fromEntries(svc.map((r) => [r.slug, r.id]));
     const industryId = Object.fromEntries(ind.map((r) => [r.slug, r.id]));
 
@@ -92,13 +108,17 @@ async function seedAll() {
 }
 
 async function status() {
-  const { rows } = await client.query(`
-    SELECT c.relname AS table, c.reltuples::bigint AS approx_rows
-    FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-    WHERE n.nspname = 'website' AND c.relkind = 'r' ORDER BY 1`);
-  if (!rows.length) return console.log("website schema has no tables — run `npm run db:migrate`.");
+  // The schema may be shared with the ERP, so only report the website tables.
+  const { rows } = await client.query(
+    `SELECT c.relname AS table
+     FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+     WHERE n.nspname = $1 AND c.relkind = 'r' AND c.relname = ANY($2) ORDER BY 1`,
+    [schema, TABLES],
+  );
+  if (!rows.length) return console.log(`No website tables in "${schema}" — run \`npm run db:migrate\`.`);
+  console.log(`Schema: ${schema}`);
   for (const { table } of rows) {
-    const { rows: [{ count }] } = await client.query(`SELECT count(*)::int AS count FROM website.${table}`);
+    const { rows: [{ count }] } = await client.query(`SELECT count(*)::int AS count FROM ${table}`);
     console.log(`${table.padEnd(24)} ${count}`);
   }
 }

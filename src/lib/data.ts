@@ -41,7 +41,7 @@ export async function getServiceLinks(): Promise<ServiceLink[]> {
   "use cache";
   cached("services");
   return query<ServiceLink>(
-    `SELECT slug, title, summary, icon FROM website.services
+    `SELECT slug, title, summary, icon FROM services
      WHERE is_published ORDER BY sort_order, title`,
   );
 }
@@ -51,7 +51,7 @@ export async function getServices(): Promise<Service[]> {
   cached("services");
   return query<Service>(
     `SELECT id, slug, title, tagline, summary, description, icon, capabilities, deliverables, technologies
-     FROM website.services WHERE is_published ORDER BY sort_order, title`,
+     FROM services WHERE is_published ORDER BY sort_order, title`,
   );
 }
 
@@ -60,7 +60,7 @@ export async function getService(slug: string): Promise<Service | null> {
   cached("services");
   const rows = await query<Service>(
     `SELECT id, slug, title, tagline, summary, description, icon, capabilities, deliverables, technologies
-     FROM website.services WHERE slug = $1 AND is_published`,
+     FROM services WHERE slug = $1 AND is_published`,
     [slug],
   );
   return rows[0] ?? null;
@@ -73,7 +73,7 @@ export async function getIndustries(): Promise<Industry[]> {
   cached("industries");
   return query<Industry>(
     `SELECT id, slug, name, summary, challenges, solutions, icon
-     FROM website.industries WHERE is_published ORDER BY sort_order, name`,
+     FROM industries WHERE is_published ORDER BY sort_order, name`,
   );
 }
 
@@ -84,9 +84,9 @@ const CASE_STUDY_SUMMARY_COLUMNS = `
   i.slug AS industry_slug, i.name AS industry_name, s.slug AS service_slug, s.title AS service_title`;
 
 const CASE_STUDY_JOINS = `
-  FROM website.case_studies cs
-  LEFT JOIN website.industries i ON i.id = cs.industry_id
-  LEFT JOIN website.services s ON s.id = cs.service_id`;
+  FROM case_studies cs
+  LEFT JOIN industries i ON i.id = cs.industry_id
+  LEFT JOIN services s ON s.id = cs.service_id`;
 
 export async function getCaseStudies(): Promise<CaseStudySummary[]> {
   "use cache";
@@ -137,7 +137,7 @@ export async function getTestimonials(): Promise<Testimonial[]> {
   cached("testimonials");
   return query<Testimonial>(
     `SELECT id, quote, author_name, author_role, company, rating
-     FROM website.testimonials WHERE is_published ORDER BY sort_order, id`,
+     FROM testimonials WHERE is_published ORDER BY sort_order, id`,
   );
 }
 
@@ -150,7 +150,7 @@ export async function getPosts(limit?: number): Promise<PostSummary[]> {
   "use cache";
   cached("posts");
   return query<PostSummary>(
-    `SELECT ${POST_SUMMARY_COLUMNS} FROM website.posts
+    `SELECT ${POST_SUMMARY_COLUMNS} FROM posts
      WHERE is_published AND published_at <= current_date
      ORDER BY published_at DESC, id DESC LIMIT $1`,
     [limit ?? null],
@@ -162,7 +162,7 @@ export async function getPost(slug: string): Promise<Post | null> {
   cached("posts");
   const rows = await query<Post>(
     `SELECT ${POST_SUMMARY_COLUMNS}, body, to_char(updated_at, 'YYYY-MM-DD') AS updated_at
-     FROM website.posts WHERE slug = $1 AND is_published`,
+     FROM posts WHERE slug = $1 AND is_published`,
     [slug],
   );
   return rows[0] ?? null;
@@ -172,7 +172,7 @@ export async function getRelatedPosts(slug: string, category: string, limit = 2)
   "use cache";
   cached("posts");
   return query<PostSummary>(
-    `SELECT ${POST_SUMMARY_COLUMNS} FROM website.posts
+    `SELECT ${POST_SUMMARY_COLUMNS} FROM posts
      WHERE is_published AND slug <> $1 AND published_at <= current_date
      ORDER BY (category = $2) DESC, published_at DESC LIMIT $3`,
     [slug, category, limit],
@@ -188,7 +188,7 @@ export async function getJobOpenings(): Promise<JobOpeningSummary[]> {
   "use cache";
   cached("jobs");
   return query<JobOpeningSummary>(
-    `SELECT ${JOB_SUMMARY_COLUMNS} FROM website.job_openings
+    `SELECT ${JOB_SUMMARY_COLUMNS} FROM job_openings
      WHERE is_open ORDER BY posted_at DESC, title`,
   );
 }
@@ -198,7 +198,7 @@ export async function getJobOpening(slug: string): Promise<JobOpening | null> {
   cached("jobs");
   const rows = await query<JobOpening>(
     `SELECT id, ${JOB_SUMMARY_COLUMNS}, responsibilities, requirements, nice_to_have
-     FROM website.job_openings WHERE slug = $1 AND is_open`,
+     FROM job_openings WHERE slug = $1 AND is_open`,
     [slug],
   );
   return rows[0] ?? null;
@@ -209,11 +209,11 @@ export async function getJobOpening(slug: string): Promise<JobOpening | null> {
 export async function getStats(): Promise<Stat[]> {
   "use cache";
   cached("stats");
-  return query<Stat>(`SELECT id, value, label FROM website.stats ORDER BY sort_order, id`);
+  return query<Stat>(`SELECT id, value, label FROM stats ORDER BY sort_order, id`);
 }
 
 export async function getFaqs(): Promise<Faq[]> {
   "use cache";
   cached("faqs");
-  return query<Faq>(`SELECT id, question, answer FROM website.faqs WHERE is_published ORDER BY sort_order, id`);
+  return query<Faq>(`SELECT id, question, answer FROM faqs WHERE is_published ORDER BY sort_order, id`);
 }

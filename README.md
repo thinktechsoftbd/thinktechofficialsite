@@ -8,7 +8,7 @@ All content (services, industries, case studies, insights, jobs, FAQs, stats, te
 ```bash
 npm install
 cp .env.example .env.local      # then fill in DATABASE_URL etc.
-npm run db:setup                # create the `website` schema + seed starter content
+npm run db:setup                # create the website tables + seed starter content
 npm run dev                     # http://localhost:3000
 ```
 
@@ -25,12 +25,13 @@ npm run start
 | --- | --- |
 | `DATABASE_URL` | `postgres://user:password@host:5432/thinktecherp` |
 | `DATABASE_SSL` | `true` if the database requires TLS |
+| `DATABASE_SCHEMA` | Schema that holds the website tables (default `public`) |
 | `NEXT_PUBLIC_SITE_URL` | Public URL, used in the sitemap, canonical URLs and Open Graph tags |
 | `REVALIDATE_SECRET` | Bearer token for `POST /api/revalidate` |
 
 ## Database
 
-Everything lives in a dedicated **`website` schema** so it can share `thinktecherp` with ERP modules without name clashes.
+The website tables live in the `thinktecherp` database, in the schema named by **`DATABASE_SCHEMA`** (default `public`, shared with the ERP tables). Queries use plain table names and every connection sets its `search_path` to that schema, so if the tables are ever moved to another schema, change `DATABASE_SCHEMA` in `.env.local` and restart the server; no code changes are needed.
 
 | Table | Written by | Notes |
 | --- | --- | --- |
@@ -66,7 +67,7 @@ New detail pages (for example a new post slug) work immediately without a rebuil
 ## Project structure
 
 ```
-db/schema.sql            schema (website.*)
+db/schema.sql            website tables (created in DATABASE_SCHEMA)
 db/seed-data.mjs         starter content
 scripts/db.mjs           migrate / seed / status CLI
 src/config/site.ts       company details, nav, engagement models, process, tech stack
@@ -79,8 +80,8 @@ src/app/**/page.tsx      routes: /, /services, /industries, /work, /insights, /c
 
 - [ ] Replace the placeholder contact details and social links in `src/config/site.ts`.
 - [ ] Replace the **sample** case studies, testimonials and job openings with real ones, or unpublish them:
-      `UPDATE website.case_studies SET is_published = false;` (likewise `testimonials.is_published`, `job_openings.is_open`).
-- [ ] Update `website.stats` with real figures (projects delivered, clients, team size, years).
+      `UPDATE case_studies SET is_published = false;` (likewise `testimonials.is_published`, `job_openings.is_open`).
+- [ ] Update the `stats` table with real figures (projects delivered, clients, team size, years).
 - [ ] Have the privacy policy (`src/app/privacy/page.tsx`) reviewed for your jurisdiction.
 - [ ] Use a strong database password and a least-privilege DB user for the website (it needs SELECT on content tables and INSERT on lead tables only), and restrict port 5432 to the web server's IP.
 - [ ] Set `NEXT_PUBLIC_SITE_URL` to the real domain and generate a new `REVALIDATE_SECRET`.
