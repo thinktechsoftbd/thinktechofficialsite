@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Code2, Eye, FileSignature, KeyRound, MessagesSquare, Users } from "lucide-react";
 import { CtaBand } from "@/components/CtaBand";
 import { FaqList } from "@/components/FaqList";
 import { PricingPlans } from "@/components/pricing/PricingPlans";
+import { SubscriptionModules } from "@/components/pricing/SubscriptionModules";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
-// Fully static page: plans live in src/config/pricing.ts, no database or API.
+// Plans live in src/config/pricing.ts. The subscription software section reads
+// the active modules from the ERP API (cached for hours, tag "subscription-modules").
 export const metadata: Metadata = {
   title: "Pricing",
   description:
@@ -60,6 +63,10 @@ export default function PricingPage() {
   return (
     <>
       <PricingPlans />
+
+      <Suspense>
+        <SubscriptionModules />
+      </Suspense>
 
       <section className="border-t border-slate-200 bg-slate-50 py-16 sm:py-20">
         <Container>

@@ -1,0 +1,2 @@
+- For this ERP, prefers a supplier-only party model: keep `purchase.supplier` and omit the separate customer table and supplier/customer role flags such as `is_supplier`. Confidence: 0.9
+- When a task involves multiple repositories, use the user's explicitly supplied current project path as the source of truth rather than assuming another repo. Confidence: 0.8

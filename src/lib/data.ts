@@ -1,6 +1,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { query } from "./db";
+import { erpGet } from "./erp";
 import type {
   CaseStudy,
   CaseStudySummary,
@@ -13,6 +14,7 @@ import type {
   Service,
   ServiceLink,
   Stat,
+  SubscriptionModule,
   Testimonial,
 } from "./types";
 
@@ -27,6 +29,7 @@ export const CONTENT_TAGS = [
   "jobs",
   "stats",
   "faqs",
+  "subscription-modules",
 ] as const;
 export type ContentTag = (typeof CONTENT_TAGS)[number];
 
@@ -216,4 +219,23 @@ export async function getFaqs(): Promise<Faq[]> {
   "use cache";
   cached("faqs");
   return query<Faq>(`SELECT id, question, answer FROM faqs WHERE is_published ORDER BY sort_order, id`);
+}
+
+// ------------------------------------------------- subscription modules (ERP)
+
+// Active modules from the ERP's subscription_module table, read through the ERP
+// API. When the API can't be reached the pricing page leaves the section out
+// and tries again a few minutes later instead of failing the page.
+export async function getSubscriptionModules(): Promise<SubscriptionModule[]> {
+  "use cache";
+  cacheTag("subscription-modules");
+  try {
+    const modules = await erpGet<SubscriptionModule[]>("/api/security/integration/subscription-modules");
+    cacheLife("hours");
+    return modules;
+  } catch (err) {
+    console.error("Could not load subscription modules from the ERP API:", err);
+    cacheLife("minutes");
+    return [];
+  }
 }
