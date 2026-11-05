@@ -4,10 +4,12 @@ import { Code2, Eye, FileSignature, KeyRound, MessagesSquare, Users } from "luci
 import { CtaBand } from "@/components/CtaBand";
 import { FaqList } from "@/components/FaqList";
 import { PricingPlans } from "@/components/pricing/PricingPlans";
-import { SubscriptionModulePills, SubscriptionModules } from "@/components/pricing/SubscriptionModules";
+import { SubscriptionModules } from "@/components/pricing/SubscriptionModules";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { getSubscriptionModules } from "@/lib/data";
+import { moduleAnchor, moduleIcon, type PricingModule } from "@/lib/modules";
 
 // Plans live in src/config/pricing.ts. The subscription software section reads
 // active modules from public.subscription_module (cached for hours).
@@ -59,16 +61,27 @@ const pricingFaqs = [
   },
 ];
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  // Subscription products for the hero pills and tabs. The plans still render
+  // if the database is unavailable; only the product tabs are left out.
+  const modules: PricingModule[] = await getSubscriptionModules()
+    .then((rows) =>
+      rows.map((m) => ({
+        id: m.objectId,
+        name: m.moduleName,
+        icon: moduleIcon(m.moduleName),
+        description: m.remarks,
+        anchor: moduleAnchor(m.moduleName),
+      })),
+    )
+    .catch((err) => {
+      console.error("Loading subscription modules for /pricing failed", err);
+      return [];
+    });
+
   return (
     <>
-      <PricingPlans
-        modulePills={
-          <Suspense>
-            <SubscriptionModulePills />
-          </Suspense>
-        }
-      />
+      <PricingPlans modules={modules} />
 
       <Suspense>
         <SubscriptionModules />
