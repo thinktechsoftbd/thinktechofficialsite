@@ -4,8 +4,7 @@ import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { getSubscriptionModules } from "@/lib/data";
 
-// Active modules from the ERP. Left out entirely when there are none or the
-// ERP API can't be reached.
+// Active modules from the shared database. Left out when there are none.
 export async function SubscriptionModules() {
   const modules = await getSubscriptionModules();
   if (!modules.length) return null;

@@ -91,5 +91,5 @@ export type Stat = { id: number; value: string; label: string };
 
 export type Faq = { id: number; question: string; answer: string };
 
-// From the ERP API (GET /api/security/integration/subscription-modules).
+// From public.subscription_module in the shared database.
 export type SubscriptionModule = { objectId: string; moduleName: string; remarks: string | null };

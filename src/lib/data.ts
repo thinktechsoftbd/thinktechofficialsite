@@ -1,7 +1,6 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { query } from "./db";
-import { erpGet } from "./erp";
 import type {
   CaseStudy,
   CaseStudySummary,
@@ -221,21 +220,17 @@ export async function getFaqs(): Promise<Faq[]> {
   return query<Faq>(`SELECT id, question, answer FROM faqs WHERE is_published ORDER BY sort_order, id`);
 }
 
-// ------------------------------------------------- subscription modules (ERP)
+// ------------------------------------------------------ subscription modules
 
-// Active modules from the ERP's subscription_module table, read through the ERP
-// API. When the API can't be reached the pricing page leaves the section out
-// and tries again a few minutes later instead of failing the page.
+// Active modules from the ERP's shared public schema.
 export async function getSubscriptionModules(): Promise<SubscriptionModule[]> {
   "use cache";
+  cached("subscription-modules");
   cacheTag("subscription-modules");
-  try {
-    const modules = await erpGet<SubscriptionModule[]>("/api/security/integration/subscription-modules");
-    cacheLife("hours");
-    return modules;
-  } catch (err) {
-    console.error("Could not load subscription modules from the ERP API:", err);
-    cacheLife("minutes");
-    return [];
-  }
+  return query<SubscriptionModule>(
+    `SELECT object_id AS "objectId", module_name AS "moduleName", remarks
+     FROM public.subscription_module
+     WHERE is_active IS TRUE
+     ORDER BY module_name, subscription_module_id`,
+  );
 }

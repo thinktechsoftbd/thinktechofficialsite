@@ -10,7 +10,7 @@ import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
 // Plans live in src/config/pricing.ts. The subscription software section reads
-// the active modules from the ERP API (cached for hours, tag "subscription-modules").
+// active modules from public.subscription_module (cached for hours).
 export const metadata: Metadata = {
   title: "Pricing",
   description:
