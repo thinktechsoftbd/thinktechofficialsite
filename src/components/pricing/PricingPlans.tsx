@@ -52,14 +52,16 @@ const percentOff = (price: number, oldPrice: number) => Math.round((1 - price / 
 const planHref = (plan: Plan, category: PricingCategory) =>
   plan.price === null ? "/contact" : `/checkout/${category.id}/${plan.id}`;
 
-export function PricingPlans() {
+// `modulePills` is rendered under the category pills: a server-rendered row of
+// subscription products from the database (see SubscriptionModulePills).
+export function PricingPlans({ modulePills }: { modulePills?: React.ReactNode }) {
   const [categoryId, setCategoryId] = useState(pricingCategories[0].id);
   const [yearly, setYearly] = useState(true);
   const category = pricingCategories.find((c) => c.id === categoryId) ?? pricingCategories[0];
 
   return (
     <>
-      {/* Hero with category pills */}
+      {/* Hero with the subscription product pills */}
       <section className="bg-hero-glow relative isolate overflow-hidden">
         <div className="bg-grid absolute inset-0 -z-10" aria-hidden="true" />
         <div
@@ -79,34 +81,32 @@ export function PricingPlans() {
               </li>
             ))}
           </ul>
-          <div role="group" aria-label="Plan category" className="mt-10 flex flex-wrap justify-center gap-3">
-            {pricingCategories.map((c) => {
-              const active = c.id === category.id;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  aria-pressed={active}
-                  aria-controls="pricing-plans"
-                  onClick={() => setCategoryId(c.id)}
-                  className={`focus-ring inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
-                    active
-                      ? "bg-white text-ink-900 shadow-lg"
-                      : "bg-white/10 text-white ring-1 ring-white/15 hover:bg-white/20"
-                  }`}
-                >
-                  <Icon name={c.icon} className="size-4" />
-                  {c.label}
-                </button>
-              );
-            })}
-          </div>
+          {modulePills}
         </Container>
       </section>
 
-      {/* Plans */}
+      {/* Plans, with the category tabs on top */}
       <section id="pricing-plans" className="scroll-mt-20 bg-slate-100 py-16 sm:py-20">
         <Container>
+          <div
+            role="group"
+            aria-label="Plan category"
+            className="mb-10 flex flex-wrap gap-1 rounded-3xl bg-white p-1.5 shadow-sm ring-1 ring-slate-200 sm:inline-flex sm:rounded-full"
+          >
+            {pricingCategories.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                aria-pressed={c.id === category.id}
+                onClick={() => setCategoryId(c.id)}
+                className="focus-ring inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:text-slate-900 aria-pressed:bg-ink-900 aria-pressed:text-white"
+              >
+                <Icon name={c.icon} className="size-4" />
+                {c.label}
+              </button>
+            ))}
+          </div>
+
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">{category.title}</h2>

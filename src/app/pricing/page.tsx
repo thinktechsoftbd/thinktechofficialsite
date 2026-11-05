@@ -4,7 +4,7 @@ import { Code2, Eye, FileSignature, KeyRound, MessagesSquare, Users } from "luci
 import { CtaBand } from "@/components/CtaBand";
 import { FaqList } from "@/components/FaqList";
 import { PricingPlans } from "@/components/pricing/PricingPlans";
-import { SubscriptionModules } from "@/components/pricing/SubscriptionModules";
+import { SubscriptionModulePills, SubscriptionModules } from "@/components/pricing/SubscriptionModules";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
@@ -62,7 +62,13 @@ const pricingFaqs = [
 export default function PricingPage() {
   return (
     <>
-      <PricingPlans />
+      <PricingPlans
+        modulePills={
+          <Suspense>
+            <SubscriptionModulePills />
+          </Suspense>
+        }
+      />
 
       <Suspense>
         <SubscriptionModules />

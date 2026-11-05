@@ -1,8 +1,28 @@
-import { Layers } from "lucide-react";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Container } from "@/components/ui/Container";
+import { Icon } from "@/components/ui/Icon";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { getSubscriptionModules } from "@/lib/data";
+
+// subscription_module has no icon column, so pick one from the module name.
+// The first matching rule wins (a "mobile app" module gets the phone icon).
+const iconRules: [RegExp, string][] = [
+  [/mobile/i, "smartphone"],
+  [/attendance|payroll/i, "fingerprint"],
+  [/medi|clinic|doctor|health|chamber|hospital/i, "stethoscope"],
+  [/e-?commerce|shop|store/i, "shopping-bag"],
+  [/erp|accounting|inventory/i, "layout-dashboard"],
+  [/web ?site|website/i, "monitor"],
+];
+
+function moduleIcon(name: string) {
+  return iconRules.find(([pattern]) => pattern.test(name))?.[1] ?? "layers";
+}
+
+// Anchor for each module card, used by the pills in the pricing hero.
+function moduleAnchor(name: string) {
+  return `module-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`;
+}
 
 // Active modules from the shared database. Left out when there are none.
 export async function SubscriptionModules() {
@@ -23,10 +43,11 @@ export async function SubscriptionModules() {
           {modules.map((module) => (
             <li
               key={module.objectId}
-              className="flex w-full flex-col rounded-2xl bg-white p-6 ring-1 ring-slate-200 sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)]"
+              id={moduleAnchor(module.moduleName)}
+              className="flex w-full scroll-mt-24 flex-col rounded-2xl bg-white p-6 ring-1 ring-slate-200 transition-shadow target:shadow-lg target:ring-2 target:ring-brand-500 sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)]"
             >
               <span className="flex size-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-                <Layers className="size-5" aria-hidden="true" />
+                <Icon name={moduleIcon(module.moduleName)} className="size-5" />
               </span>
               <h3 className="mt-5 text-lg font-semibold text-slate-900">{module.moduleName}</h3>
               {module.remarks && <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">{module.remarks}</p>}
@@ -40,5 +61,29 @@ export async function SubscriptionModules() {
         </ul>
       </Container>
     </section>
+  );
+}
+
+// Row of module pills for the pricing hero; each one jumps to its card above.
+export async function SubscriptionModulePills() {
+  const modules = await getSubscriptionModules();
+  if (!modules.length) return null;
+
+  return (
+    <div className="mt-10">
+      <ul aria-label="Ready-made software" className="flex flex-wrap justify-center gap-3">
+        {modules.map((module) => (
+          <li key={module.objectId}>
+            <a
+              href={`#${moduleAnchor(module.moduleName)}`}
+              className="focus-ring inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-sm font-medium text-slate-200 ring-1 ring-white/15 transition-colors hover:bg-white/15 hover:text-white"
+            >
+              <Icon name={moduleIcon(module.moduleName)} className="size-4 text-accent-300" />
+              {module.moduleName}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
